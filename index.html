@@ -138,7 +138,7 @@ html,body{background:#070605;font-family:"Shippori Mincho","Zen Old Mincho","Hir
 .trk.on{border-color:var(--gold);background:#3d2f19}
 .screen::before,.screen::after{content:"";position:absolute;left:14px;right:14px;height:2px;background:linear-gradient(90deg,transparent,var(--gold2),transparent)}
 .screen::before{top:14px}.screen::after{bottom:38px}
-</style>
+.trk .tn{flex:1}.cmt{margin-top:7px;padding:7px 9px;border-top:1px solid var(--ln);font-weight:500;font-size:12.5px;line-height:1.7;color:var(--ink)}.cmt b{display:block;color:var(--gold);font-size:11px;letter-spacing:.1em;margin-bottom:2px}</style>
 </head>
 <body>
 <div id="app">
@@ -169,13 +169,13 @@ let bgmOn=true,curBgm=null,audios={},fadeTimers=[];
 function getAudio(k){if(!audios[k]){const a=new Audio(BGM[k]);a.loop=true;a.preload='auto';a.volume=0;audios[k]=a}return audios[k]}
 function fade(a,to,ms,done){const from=a.volume,t0=performance.now();const iv=setInterval(()=>{const p=Math.min(1,(performance.now()-t0)/ms);a.volume=Math.max(0,Math.min(1,from+(to-from)*p));if(p>=1){clearInterval(iv);done&&done()}},40)}
 const TRACKS=[
- {k:'title',n:'新緑の進軍、鋼の戦意',u:'タイトル'},
- {k:'tutorial',n:'ボン&ジニー',u:'チュートリアル'},
- {k:'rebel',n:'砕けぬための行軍',u:'反乱軍との戦闘'},
- {k:'rescue',n:'ボンボンミリタリー！',u:'ボンの救出戦'},
- {k:'water',n:'野望を掲げて',u:'水辺・氷河'},
- {k:'forest',n:'バウムゲフェヒト〜Sylvan Dominion',u:'森林・樹海'},
- {k:'tactics',n:'UTOPIA TACTICS!!!',u:'火山・遺跡以外のマップ(仮)'},
+ {k:'title',n:'新緑の進軍、鋼の戦意',u:'タイトル',c:'『弾幕のメガリス』のタイトル曲をアレンジした一曲です。\n続編のタイトル曲として、新しい曲を作ろうかと悩みました。\nけれど、シリーズの原点となる曲なので、あらためて採用しました。'},
+ {k:'tutorial',n:'ボン&ジニー',u:'チュートリアル',c:'ほかのゲームで使っていた曲です。\nジニーちゃんのイメージに合う、可愛い曲だと思ったので、\nチュートリアルの曲として採用しました。'},
+ {k:'rebel',n:'砕けぬための行軍',u:'反乱軍との戦闘',c:'『弾幕のメガリス』の中盤で流れていた曲です。\nシリーズの中でも、1、2を争うくらい気に入っている曲なので、\nたくさん聴いてほしくて、反乱軍との戦闘曲に選びました。'},
+ {k:'rescue',n:'ボンボンミリタリー！',u:'ボンの救出戦',c:'『ボンボンライフ！』のBGMです。\n7人のボンたちと言えば、この曲ですよね。\n原曲は可愛い雰囲気でしたが、アレンジしたら急に勇ましくなりました。\nボンを救出する戦いの曲にしました。'},
+ {k:'water',n:'野望を掲げて',u:'水辺・氷河',c:'『弾幕のメガリス』の最序盤のボスの曲をアレンジしたものです。\n水辺や氷河のマップで流れる曲として使っていますが、\nあまり氷河っぽくないかもしれません。ごめんなさい。'},
+ {k:'forest',n:'バウムゲフェヒト〜Sylvan Dominion',u:'森林・樹海',c:'こちらも、1、2を争うくらい大好きな曲です！\n森林や樹海のマップで流れる曲として使っています。\nぜひじっくり聴いてください。'},
+ {k:'tactics',n:'UTOPIA TACTICS!!!',u:'火山・遺跡以外のマップ(仮)',c:'いろいろなゲームで使われている曲です！\nこのゲームのほかにも、使われている場所があるかもしれません。\n探してみてください。'},
 ];
 let seen=new Set();try{seen=new Set(JSON.parse(localStorage.getItem('tact_seen')||'[]'))}catch(e){}
 function markSeen(k){if(seen.has(k))return;seen.add(k);try{localStorage.setItem('tact_seen',JSON.stringify([...seen]))}catch(e){}}
@@ -566,7 +566,7 @@ function titleScreen(){
 }
 function galleryScreen(){
   const rows=TRACKS.map(t=>{const known=t.k==='title'||seen.has(t.k);
-    return `<button class="trk${curBgm===t.k?' on':''}" data-k="${t.k}"><span class="pl">${curBgm===t.k?'■':'▶'}</span><span class="tn">${t.n}<small>場所：${known?t.u:'？？？'}</small></span></button>`}).join('');
+    return `<button class="trk${curBgm===t.k?' on':''}" data-k="${t.k}"><span class="pl">${curBgm===t.k?'■':'▶'}</span><span class="tn">${t.n}<small>場所：${known?t.u:'？？？'}</small>${curBgm===t.k?`<div class="cmt"><b>作者コメント</b>${(t.c||'（準備中です）').replace(/\n/g,'<br>')}</div>`:''}</span></button>`}).join('');
   showScreen(`<h2>BGM鑑賞</h2><div class="sub">タップで再生 / もういちどタップで停止</div><div class="tracks">${rows}</div>
    <div class="note">まだ出会っていない曲の場所は「？？？」だよ。<br>ゲームで出会うと表示される。</div>
    <button class="big" id="galBack">もどる</button>`);
@@ -605,15 +605,15 @@ async function runGame(){
       const r={id:'rich',name:'リッチ',team:'n',npc:true,glyph:'リ',color:'#b8876a',hp:99,maxhp:99,wp:0,maxwp:0,atk:0,mat:0,def:0,mov:0,x:4,y:6,buf:{},skills:[]};
       return [g,w,r,mkEnemy('e1','grunt',2,1),mkEnemy('e2','grunt',4,1)]},
     intro:[
-      ['ウィル','ジニー、反乱軍が近づいている。ここで戦い方を確かめておこう。'],
-      ['リッチ','だいじょうぶだ。アニマがつながっているから、力を貸せる。'],
+      ['ウィル','ジニー、反乱軍が近づいておるぞ。ここで戦い方を確かめておこうかの。'],
+      ['リッチ','ヴァージニア、心配すんな。アニマが繋がってる……力は貸してやる。'],
       ['ジニー','うん、やってみる！'],
     ]
   });
   setHint(null);
   await say([
     ['反乱軍','そこまでだ！ ウィル、リッチ、おとなしくついてこい！'],
-    ['ジニー','ウィル！ リッチ！'],
+    ['ジニー','おじいちゃん！ パパ！'],
     ['反乱軍','王家に助けを求めたら、お前の母も捕えるぞ。……忘れるな。'],
   ]);
   for(const id of ['will','rich']){const u=G.units.find(x=>x.id===id);u.hp=0;placeTok(u)}
