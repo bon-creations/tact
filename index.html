@@ -167,25 +167,26 @@ const dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
 /* ---------- BGM ---------- */
 let bgmOn=true,curBgm=null,audios={},fadeTimers=[];
 function getAudio(k){if(!audios[k]){const a=new Audio(BGM[k]);a.loop=true;a.preload='auto';a.volume=0;audios[k]=a}return audios[k]}
-function fade(a,to,ms,done){const from=a.volume,t0=performance.now();const iv=setInterval(()=>{const p=Math.min(1,(performance.now()-t0)/ms);a.volume=Math.max(0,Math.min(1,from+(to-from)*p));if(p>=1){clearInterval(iv);done&&done()}},40)}
+function fade(a,to,ms,done){clearInterval(a._iv);const from=a.volume,t0=performance.now();a._iv=setInterval(()=>{const p=Math.min(1,(performance.now()-t0)/ms);a.volume=Math.max(0,Math.min(1,from+(to-from)*p));if(p>=1){clearInterval(a._iv);done&&done()}},40)}
 const TRACKS=[
  {k:'title',n:'新緑の進軍、鋼の戦意',u:'タイトル',c:'『弾幕のメガリス』のタイトル曲をアレンジした一曲です。\n続編のタイトル曲として、新しい曲を作ろうかと悩みました。\nけれど、シリーズの原点となる曲なので、あらためて採用しました。'},
- {k:'tutorial',n:'ボン&ジニー',u:'チュートリアル',c:'ほかのゲームで使っていた曲です。\nジニーちゃんのイメージに合う、可愛い曲だと思ったので、\nチュートリアルの曲として採用しました。'},
- {k:'rebel',n:'砕けぬための行軍',u:'反乱軍との戦闘',c:'『弾幕のメガリス』の中盤で流れていた曲です。\nシリーズの中でも、1、2を争うくらい気に入っている曲なので、\nたくさん聴いてほしくて、反乱軍との戦闘曲に選びました。'},
+ {k:'tutorial',n:'ボン&ジニー',u:'チュートリアル',c:'ほかのゲームで使っていた曲です。\nジニーちゃんのイメージに合う、可愛い曲だと思ったので、\nチュートリアルの曲として採用しました。\n既存の曲を、このゲーム用にアレンジしています。'},
+ {k:'rebel',n:'砕けぬための行軍',u:'反乱軍との戦闘',c:'『弾幕のメガリス』の中盤で流れていた曲です。\nシリーズの中でも、1、2を争うくらい気に入っている曲なので、\nたくさん聴いてほしくて、反乱軍との戦闘曲に選びました。\n既存の曲を、このゲーム用にアレンジしています。'},
  {k:'rescue',n:'ボンボンミリタリー！',u:'ボンの救出戦',c:'『ボンボンライフ！』のBGMです。\n7人のボンたちと言えば、この曲ですよね。\n原曲は可愛い雰囲気でしたが、アレンジしたら急に勇ましくなりました。\nボンを救出する戦いの曲にしました。'},
  {k:'water',n:'野望を掲げて',u:'水辺・氷河',c:'『弾幕のメガリス』の最序盤のボスの曲をアレンジしたものです。\n水辺や氷河のマップで流れる曲として使っていますが、\nあまり氷河っぽくないかもしれません。ごめんなさい。'},
- {k:'forest',n:'バウムゲフェヒト〜Sylvan Dominion',u:'森林・樹海',c:'こちらも、1、2を争うくらい大好きな曲です！\n森林や樹海のマップで流れる曲として使っています。\nぜひじっくり聴いてください。'},
- {k:'tactics',n:'UTOPIA TACTICS!!!',u:'火山・遺跡以外のマップ(仮)',c:'いろいろなゲームで使われている曲です！\nこのゲームのほかにも、使われている場所があるかもしれません。\n探してみてください。'},
+ {k:'forest',n:'バウムゲフェヒト〜Sylvan Dominion',u:'森林・樹海',c:'こちらも、1、2を争うくらい大好きな曲です！\n森林や樹海のマップで流れる曲として使っています。\nぜひじっくり聴いてください。\n既存の曲を、このゲーム用にアレンジしています。'},
+ {k:'tactics',n:'UTOPIA TACTICS!!!',u:'火山・遺跡以外のマップ(仮)',c:'いろいろなゲームで使われている曲です！\nこのゲームのほかにも、使われている場所があるかもしれません。\n探してみてください。\n既存の曲を、このゲーム用にアレンジしています。'},
 ];
 let seen=new Set();try{seen=new Set(JSON.parse(localStorage.getItem('tact_seen')||'[]'))}catch(e){}
 function markSeen(k){if(seen.has(k))return;seen.add(k);try{localStorage.setItem('tact_seen',JSON.stringify([...seen]))}catch(e){}}
 function playBgm(k,gal){
   if(k&&!gal)markSeen(k);
-  if(curBgm===k)return;
-  if(curBgm){const o=audios[curBgm];fade(o,0,500,()=>{try{o.pause()}catch(e){}})}
+  if(k&&curBgm===k&&audios[k]&&!audios[k].paused)return;
+  /* いま鳴っている曲は、選んだ曲以外ぜんぶ止める(2重再生防止) */
+  Object.keys(audios).forEach(n=>{if(n===k)return;const o=audios[n];if(!o.paused)fade(o,0,400,()=>{try{o.pause()}catch(e){}})});
   curBgm=k;
   if(!k||!bgmOn)return;
-  try{const a=getAudio(k);a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});fade(a,.55,800)}catch(e){}
+  try{const a=getAudio(k);clearInterval(a._iv);if(a.paused)a.currentTime=0;a.volume=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});fade(a,.55,800)}catch(e){}
 }
 $('#bgmBtn').onclick=()=>{
   bgmOn=!bgmOn;$('#bgmBtn').textContent=bgmOn?'♪ON':'♪OFF';
