@@ -4,9 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>戦略のメガリス 体験版</title>
-<link rel="manifest" href="manifest-oko.webmanifest" id="mfLink">
-<link rel="apple-touch-icon" href="icons/oko-180.png" id="atiLink">
-<link rel="icon" type="image/png" href="icons/oko-96.png" id="icoLink">
+<script>
+/* 選んだアイコンを、最初の読み込みの時点でheadに反映する(iPhoneのホーム画面追加は、追加時のheadを見るため) */
+(function(){var k='oko';try{var v=localStorage.getItem('tact_icon');if(['oko','niko','hyoe','mogu','nemu','tere','niji'].indexOf(v)>=0)k=v}catch(e){}
+document.write('<link rel="manifest" href="manifest-'+k+'.webmanifest" id="mfLink">'+
+'<link rel="apple-touch-icon" sizes="180x180" href="icons/'+k+'-180.png" id="atiLink">'+
+'<link rel="icon" type="image/png" href="icons/'+k+'-96.png" id="icoLink">')})();
+</script>
 <meta name="theme-color" content="#141a2b">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -884,8 +888,16 @@ function settingsScreen(){
   showScreen(`<h2>せってい</h2><div class="sub">アプリのアイコンを えらべるよ</div>
   <div class="icgrid">${ICONS.map(([k,n])=>`<button class="icb${k===cur?' on':''}" data-k="${k}"><img src="icons/${k}-96.png" alt=""><span>${n}</span></button>`).join('')}</div>
   <div class="note" style="margin-top:10px">えらんだあと、ホーム画面に追加(インストール)すると<br>そのアイコンになるよ。すでに追加ずみなら、<br>いちど削除して、追加しなおしてね。<br><br>・iPhone：Safariの共有ボタン →「ホーム画面に追加」<br>・Android：Chromeのメニュー →「ホーム画面に追加／アプリをインストール」<br>・PC(Chrome・Brave・Edge)：下のボタン、またはアドレスバー右端のインストールアイコン</div>
+  <div class="note" id="diag" style="margin-top:8px;font-size:11px;opacity:.8">しらべ中…</div>
   <button class="big sec${instEv?'':' hidden'}" id="instBtn">アプリとしてインストール(Chrome・Brave・Edge)</button>
   <button class="big" id="seBack">もどる</button>`);
+  (async()=>{const L=[];
+    L.push('https: '+(location.protocol==='https:'||location.hostname==='localhost'?'OK':'NG('+location.protocol+')'));
+    try{const r=await navigator.serviceWorker.getRegistration();L.push('オフライン用(sw): '+(r&&r.active?'OK':'まだ'))}catch(e){L.push('オフライン用(sw): 非対応')}
+    try{const r=await fetch($('#mfLink').href);L.push('manifest: '+(r.ok?'OK':'NG '+r.status))}catch(e){L.push('manifest: 取得できない')}
+    L.push('インストール可能の合図: '+(instEv?'来てる':'まだ来てない'));
+    L.push('いまの表示: '+(matchMedia('(display-mode: standalone)').matches||navigator.standalone?'アプリとして起動中':'ブラウザ'));
+    const d=$('#diag');if(d)d.innerHTML=L.join('<br>')})();
   $('#instBtn').onclick=async()=>{if(!instEv)return;instEv.prompt();try{await instEv.userChoice}catch(e){}instEv=null;$('#instBtn').classList.add('hidden')};
   $('#screen').classList.add('scr-scroll');
   document.querySelectorAll('.icb').forEach(b=>b.onclick=()=>{try{localStorage.setItem('tact_icon',b.dataset.k)}catch(e){}applyIcon(b.dataset.k);document.querySelectorAll('.icb').forEach(x=>x.classList.toggle('on',x===b))});
