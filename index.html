@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>戦略のメガリス 体験版</title>
+<link rel="manifest" href="manifest.webmanifest" id="mfLink">
+<link rel="apple-touch-icon" href="icons/oko-180.png" id="atiLink">
+<link rel="icon" type="image/png" href="icons/oko-96.png" id="icoLink">
+<meta name="theme-color" content="#141a2b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="戦略のメガリス">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap" rel="stylesheet">
 <style>
@@ -87,6 +95,7 @@ html,body{margin:0;height:100%;background:#0b0f1c;color:var(--ink);font-family:"
 .note{font-size:11.5px;color:var(--mute);line-height:1.6;max-width:360px}
 .list{font-size:13px;line-height:1.7;background:#0007;border-radius:10px;padding:8px 14px;text-align:left}
 .screen .big.sec{background:#2a3560;color:var(--gold);box-shadow:0 4px 0 #141b3a;font-size:15px;padding:9px 26px;border:2px solid var(--gold)}
+.icgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:360px}.icb{background:var(--panel);border:2px solid #3a4778;border-radius:14px;padding:6px 4px;color:var(--ink);font:inherit;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}.icb img{width:100%;border-radius:12px}.icb.on{border-color:var(--gold);background:var(--panel2)}
 .tracks{display:flex;flex-direction:column;gap:6px;width:100%;max-width:360px}
 .trk{display:flex;gap:10px;align-items:center;text-align:left;background:var(--panel);color:var(--ink);border:2px solid #3b4b8a;border-radius:10px;padding:9px 12px;font:inherit}
 .trk.on{border-color:var(--gold);background:#3a3550}
@@ -861,6 +870,30 @@ function runBattle(def){
 /* ---------- Story ---------- */
 function clearScreen(){const s=$('#screen');s.classList.add('hidden');s.innerHTML=''}
 function showScreen(html){const s=$('#screen');s.classList.remove('scr-scroll');s.innerHTML=html;s.classList.remove('hidden')}
+/* ---------- アプリ化(PWA)とアイコン選択 ---------- */
+const ICONS=[['oko','おこボン'],['niko','にこボン'],['hyoe','ひょえボン'],['mogu','もぐボン'],['nemu','ねむボン'],['tere','てれボン'],['niji','にじボン']];
+function getIcon(){try{const k=localStorage.getItem('tact_icon');return ICONS.some(i=>i[0]===k)?k:'oko'}catch(e){return 'oko'}}
+function applyIcon(k){
+  try{
+    $('#atiLink').href=`icons/${k}-180.png`;$('#icoLink').href=`icons/${k}-96.png`;
+    const abs=p=>new URL(p,location.href).href;
+    const man={name:'戦略のメガリス',short_name:'戦略のメガリス',description:'ボンダイルのターン制SRPG（体験版）',lang:'ja',start_url:abs('./'),scope:abs('./'),display:'standalone',background_color:'#0b0f1c',theme_color:'#141a2b',
+      icons:[{src:abs(`icons/${k}-192.png`),sizes:'192x192',type:'image/png',purpose:'any'},{src:abs(`icons/${k}-512.png`),sizes:'512x512',type:'image/png',purpose:'any'},{src:abs(`icons/${k}-m512.png`),sizes:'512x512',type:'image/png',purpose:'maskable'}]};
+    if(location.protocol.startsWith('http')){const u=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));$('#mfLink').href=u}
+  }catch(e){}
+}
+function settingsScreen(){
+  const cur=getIcon();
+  showScreen(`<h2>せってい</h2><div class="sub">アプリのアイコンを えらべるよ</div>
+  <div class="icgrid">${ICONS.map(([k,n])=>`<button class="icb${k===cur?' on':''}" data-k="${k}"><img src="icons/${k}-96.png" alt=""><span>${n}</span></button>`).join('')}</div>
+  <div class="note" style="margin-top:10px">えらんだあと、ホーム画面に追加(インストール)すると<br>そのアイコンになるよ。すでに追加ずみなら、<br>いちど削除して、追加しなおしてね。<br><br>・iPhone：Safariの共有ボタン →「ホーム画面に追加」<br>・Android：Chromeのメニュー →「ホーム画面に追加／アプリをインストール」</div>
+  <button class="big" id="seBack">もどる</button>`);
+  $('#screen').classList.add('scr-scroll');
+  document.querySelectorAll('.icb').forEach(b=>b.onclick=()=>{try{localStorage.setItem('tact_icon',b.dataset.k)}catch(e){}applyIcon(b.dataset.k);document.querySelectorAll('.icb').forEach(x=>x.classList.toggle('on',x===b))});
+  $('#seBack').onclick=titleScreen;
+}
+applyIcon(getIcon());
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 function titleScreen(){
   showScreen(`<div style="font-size:13px;color:#9aa6cf;letter-spacing:.3em">BON CREATIONS / メガリスシリーズ</div>
   <h1>戦略の<br>メガリス</h1><div class="sub">― 体験版 ―</div>
@@ -869,10 +902,12 @@ function titleScreen(){
   ${getProg()>=1?'<button class="big sec" id="stBtn">ステージ選択</button>':''}
   <button class="big sec" id="howBtn">遊び方</button>
   <button class="big sec" id="galBtn">BGM鑑賞</button>
+  <button class="big sec" id="seBtn">せってい</button>
   <div class="note">♪ 音が出ます。スマホはマナーモードにご注意<br>数値・セリフ・敵は仮のものです</div>
   <div class="copy">© BON CREATIONS</div>`);
   $('#startBtn').onclick=()=>{curBgm=null;playBgm('title');runGame()};
   $('#galBtn').onclick=galleryScreen;
+  $('#seBtn').onclick=settingsScreen;
   $('#howBtn').onclick=()=>howtoScreen();
   if($('#stBtn'))$('#stBtn').onclick=stageSelect;
 }
