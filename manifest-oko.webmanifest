@@ -12,19 +12,19 @@
  "theme_color": "#141a2b",
  "icons": [
   {
-   "src": "icons/oko-192.png",
+   "src": "icon-oko-192.png",
    "sizes": "192x192",
    "type": "image/png",
    "purpose": "any"
   },
   {
-   "src": "icons/oko-512.png",
+   "src": "icon-oko-512.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "any"
   },
   {
-   "src": "icons/oko-m512.png",
+   "src": "icon-oko-m512.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "maskable"

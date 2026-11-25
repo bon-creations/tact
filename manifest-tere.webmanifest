@@ -12,19 +12,19 @@
  "theme_color": "#141a2b",
  "icons": [
   {
-   "src": "icons/tere-192.png",
+   "src": "icon-tere-192.png",
    "sizes": "192x192",
    "type": "image/png",
    "purpose": "any"
   },
   {
-   "src": "icons/tere-512.png",
+   "src": "icon-tere-512.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "any"
   },
   {
-   "src": "icons/tere-m512.png",
+   "src": "icon-tere-m512.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "maskable"
