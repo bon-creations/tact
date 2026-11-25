@@ -876,12 +876,17 @@ function getIcon(){try{const k=localStorage.getItem('tact_icon');return ICONS.so
 function applyIcon(k){
   try{$('#atiLink').href=`icons/${k}-180.png`;$('#icoLink').href=`icons/${k}-96.png`;$('#mfLink').href=`manifest-${k}.webmanifest`}catch(e){}
 }
+let instEv=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEv=e;const b=document.querySelector('#instBtn');if(b)b.classList.remove('hidden')});
+window.addEventListener('appinstalled',()=>{instEv=null;const b=document.querySelector('#instBtn');if(b)b.classList.add('hidden')});
 function settingsScreen(){
   const cur=getIcon();
   showScreen(`<h2>せってい</h2><div class="sub">アプリのアイコンを えらべるよ</div>
   <div class="icgrid">${ICONS.map(([k,n])=>`<button class="icb${k===cur?' on':''}" data-k="${k}"><img src="icons/${k}-96.png" alt=""><span>${n}</span></button>`).join('')}</div>
-  <div class="note" style="margin-top:10px">えらんだあと、ホーム画面に追加(インストール)すると<br>そのアイコンになるよ。すでに追加ずみなら、<br>いちど削除して、追加しなおしてね。<br><br>・iPhone：Safariの共有ボタン →「ホーム画面に追加」<br>・Android：Chromeのメニュー →「ホーム画面に追加／アプリをインストール」</div>
+  <div class="note" style="margin-top:10px">えらんだあと、ホーム画面に追加(インストール)すると<br>そのアイコンになるよ。すでに追加ずみなら、<br>いちど削除して、追加しなおしてね。<br><br>・iPhone：Safariの共有ボタン →「ホーム画面に追加」<br>・Android：Chromeのメニュー →「ホーム画面に追加／アプリをインストール」<br>・PC(Chrome・Brave・Edge)：下のボタン、またはアドレスバー右端のインストールアイコン</div>
+  <button class="big sec${instEv?'':' hidden'}" id="instBtn">アプリとしてインストール(Chrome・Brave・Edge)</button>
   <button class="big" id="seBack">もどる</button>`);
+  $('#instBtn').onclick=async()=>{if(!instEv)return;instEv.prompt();try{await instEv.userChoice}catch(e){}instEv=null;$('#instBtn').classList.add('hidden')};
   $('#screen').classList.add('scr-scroll');
   document.querySelectorAll('.icb').forEach(b=>b.onclick=()=>{try{localStorage.setItem('tact_icon',b.dataset.k)}catch(e){}applyIcon(b.dataset.k);document.querySelectorAll('.icb').forEach(x=>x.classList.toggle('on',x===b))});
   $('#seBack').onclick=titleScreen;
